@@ -1,4 +1,4 @@
-
+/* Copyright (c) 2017 by Sebastian Bleuel - subIT (https://github.com/subIT1) */
 
 /* -Includes- */
 #include <LiquidCrystal.h>
@@ -13,23 +13,23 @@
 #define relais3 24
 #define relais4 25
 
-/* -Ultraschallsensor- */
+/* -Ultrasoniclsensor- */
 #define trigger 7
 #define echo 6
-int dauer = 0;
-int entfernung = 0;
-int alarmUltraschall = 0;
+int duration = 0;
+int distance = 0;
+int alarmUltrasonic = 0;
 
-/* -Zeitliche-Kontrolle- */
+/* -Timing-Control- */
 long start0 = 0;
 long start1 = 0;
 
-/* -AlarmSirene- */
-long dauerAlarm = 0;
+/* -AlarmSiren- */
+long durationAlarm = 0;
 int alarm = 0;
-int ausgeloest = 0;
-#define buzzerTon A7
-String eingabePass;
+int triggered = 0;
+#define buzzerSound A7
+String inputPass;
 
 /* -LCD1- */
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -38,7 +38,7 @@ LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 /* -LCD3- */
 //LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-/* -Temp-/Feuchtigkeitssensor- */
+/* -Temp-/Humiditysensor- */
 dht11 DHT;
 #define DHT11_sensor 42
 
@@ -59,10 +59,13 @@ decode_results results;
 #define SS_PIN 53
 #define RST_PIN 8
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-long card_1 = KEY_Value; //should be added
-long card_2 = KEY_Value; //should be added
-long key_1 = KEY_Value; //should be added
-long key_2 = KEY_Value; //should be added
+long card_1 =  KEY_Value; //should be added
+long card_2 =  KEY_Value; //should be added
+long key_1 =  KEY_Value; //should be added
+long key_2 =  KEY_Value; //should be added
+
+/* -Passwort- */
+String passwortAlarm = "YOUR_PASSWORT"; //should be added
 
 
 //----------------------
@@ -86,8 +89,8 @@ void setup() {
   pinMode(alarmStatus, OUTPUT);
   pinMode(magnet1, INPUT);
 
-  //AlarmIdentifizierung
-  digitalWrite(alarmStatus, LOW);//Inaktiv
+  //AlarmIdentification
+  digitalWrite(alarmStatus, LOW)
   digitalWrite(relais1, HIGH);
   digitalWrite(relais2, HIGH);
   digitalWrite(relais3, HIGH);
@@ -102,20 +105,20 @@ void setup() {
 //----------------------
 
 void loop() {
-  //Temperatur_Feuchtigkeit();
+  //Temperatur_Humidity();
   //alarmStart();
   //RemoteControl();
   //MagnetSensor();
   //PasswortShield();
-  //Ultraschallsensor();
+  //UltrasonicSensor();
   //RFID();
 
-  if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 0) { //Aktiv
+  if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 0) { //Activ
     RemoteControl();
     //MagnetSensor();
-    //Ultraschallsensor();
+    //UltrasonicSensor();
     RFID();
-  } else if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 1) { //Inaktiv
+  } else if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 1) { //Inactiv
     RFID();
     RemoteControl();
   }
@@ -130,7 +133,7 @@ void loop() {
 void startScreen() {
   lcd.clear();
   lcd.setCursor(3, 0);
-  lcd.println("Willkommen!          ");
+  lcd.println("Welcome!          ");
   lcd.setCursor(3, 1);
   lcd.println("Smart-Home           ");
 }
@@ -141,17 +144,17 @@ void startScreen() {
 void alarmStart() {
   Serial.println("Alarm");
 
-  //Sirene
+  //Siren
   digitalWrite(relais4, LOW);
   lcd.clear();
   lcd.setCursor(3, 0);
   lcd.println(" ALARM!                ");
   lcd.setCursor(2, 1);
-  lcd.println(" Zeit-Datum            ");
+  lcd.println(" Time-Date            ");
   delay(5000);
   digitalWrite(relais4, HIGH);
   alarm = 0;
-  ausgeloest = 1;
+  triggered = 1;
   start0 = 0;
   start1 = 0;
 
@@ -159,7 +162,7 @@ void alarmStart() {
   digitalWrite(relais2, HIGH);
   digitalWrite(relais3, HIGH);
 
-  while (ausgeloest == 1) {
+  while (triggered == 1) {
     digitalWrite(relais4, LOW);
     digitalWrite(relais3, LOW);
     delay(900);
@@ -179,7 +182,7 @@ void alarmStart() {
 
 }
 
-void AlarmAN() {
+void AlarmON() {
 
   digitalWrite(alarmStatus, LOW);
   digitalWrite(relais1, LOW);
@@ -191,7 +194,7 @@ void AlarmAN() {
   digitalWrite(echo, LOW);
 }
 
-void AlarmAUS() {
+void AlarmOFF() {
 
   digitalWrite(alarmStatus, HIGH);
   digitalWrite(relais1, HIGH);
@@ -206,29 +209,29 @@ void AlarmAUS() {
 //------END-ALARM-------
 //----------------------
 
-void Ultraschallsensor() {
-  Serial.println("Ultraschall");
+void UltrasonicSensor() {
+  Serial.println("Ultrasonic");
 
   digitalWrite(trigger, LOW);
   delay(5);
   digitalWrite(trigger, HIGH);
   delay(10);
   digitalWrite(trigger, LOW);
-  dauer = pulseIn(echo, HIGH);
-  entfernung = (dauer / 2) / 29.1;
+  duration = pulseIn(echo, HIGH);
+  distance = (duration / 2) / 29.1;
 
-  if (entfernung >= 500 || entfernung <= 0) {
+  if (distance >= 500 || distance <= 0) {
   }
   else {
 
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.println("Ultraschallsens.");
+    lcd.println("Ultrasonicsens.");
     lcd.setCursor(6, 1);
-    lcd.print(entfernung);
+    lcd.print(distance);
     lcd.println(" cm             ");
 
-    if (entfernung <= 20) {
+    if (distance <= 20) {
       digitalWrite(relais2, LOW);
       digitalWrite(relais3, LOW);
       delay(1000);
@@ -236,26 +239,26 @@ void Ultraschallsensor() {
 
   }
 
-  if (alarmUltraschall == 0) {
+  if (alarmUltrasonic == 0) {
     start0 = millis();
-  } else if (alarmUltraschall == 1) {
+  } else if (alarmUltrasonic == 1) {
     start1 = millis();
   }
   if (digitalRead(relais2) == LOW && digitalRead(relais3) == LOW) {
-    alarmUltraschall = 1;
+    alarmUltrasonic = 1;
 
     if (start0 != 0 && start1 != 0) {
 
       if ((start1 - start0) > 5000) {
-        alarmUltraschall = 0;
+        alarmUltrasonic = 0;
         start0 = 0;
         start1 = 0;
       } else if ((start1 - start0) <= 5000) {
-        alarmUltraschall = 4;
+        alarmUltrasonic = 4;
 
-        if (alarmUltraschall = 4) {
-          alarmUltraschall = 0;
-          ausgeloest = 1;
+        if (alarmUltrasonic = 4) {
+          alarmUltrasonic = 0;
+          triggered = 1;
           start0 = 0;
           start1 = 0;
           alarmStart();
@@ -266,17 +269,17 @@ void Ultraschallsensor() {
   delay(1000);
 }
 //----------------------
-//----END-ULTRASCHALL---
+//----END-Ultrasonic---
 //----------------------
 
-void Temperatur_Feuchtigkeit() {
-  Serial.println("Temp/Luft");
+void Temperatur_Humidity() {
+  Serial.println("Temp/Air");
 
   int chk = DHT.read(DHT11_sensor);
 
   lcd.clear();
   lcd.setCursor(0, 0);
-  lcd.println("Luftfeuch.:");
+  lcd.println("Airhumid.:");
   lcd.println(DHT.humidity, 1);
   lcd.setCursor(0, 1);
   lcd.println("Temperatur:");
@@ -284,13 +287,11 @@ void Temperatur_Feuchtigkeit() {
   delay(10000);
 }
 //----------------------
-//-----END-Luft/Temp----
+//-----END-Air/Temp----
 //----------------------
 
 
 void RemoteControl() {
-
-  String passwortAlarm = "426875";
 
   int auswahl = 0;
   int laengeEingabe = 0;
@@ -305,18 +306,18 @@ void RemoteControl() {
 
     //BREAK beachten !!
     case 0xFF629D: Serial.println(" FORWARD");
-      Ultraschallsensor();
+      UltrasonicSensor();
       break;
     case 0xFF22DD: Serial.println(" LEFT");
       alarmStart();
       break;
     case 0xFF02FD: Serial.println(" -OK-");
       lcd.clear();
-      lcd.println(eingabePass);
+      lcd.println(inputPass);
       delay(200);
       break;
     case 0xFFC23D: Serial.println(" RIGHT");
-      Temperatur_Feuchtigkeit();
+      Temperatur_Humidity();
       break;
     case 0xFFA857: Serial.println(" REVERSE");
       RFID();
@@ -324,118 +325,118 @@ void RemoteControl() {
 
     case 0xFF6897: Serial.println(" 1");
       auswahl = 1;
-      eingabePass = eingabePass + "1";
+      inputPass = inputPass + "1";
       delay(200);
       break;
 
     case 0xFF9867: Serial.println(" 2");
       auswahl = 2;
-      eingabePass = eingabePass + "2";
+      inputPass = inputPass + "2";
       delay(200);
       break;
 
     case 0xFFB04F: Serial.println(" 3");
       auswahl = 3;
-      eingabePass = eingabePass + "3";
+      inputPass = inputPass + "3";
       delay(200);
       break;
 
     case 0xFF30CF: Serial.println(" 4");
       auswahl = 4;
-      eingabePass = eingabePass + "4";
+      inputPass = inputPass + "4";
       delay(200);
       break;
 
     case 0xFF18E7: Serial.println(" 5");
       auswahl = 5;
-      eingabePass = eingabePass + "5";
+      inputPass = inputPass + "5";
       delay(200);
       break;
 
     case 0xFF7A85: Serial.println(" 6");
       auswahl = 6;
-      eingabePass = eingabePass + "6";
+      inputPass = inputPass + "6";
       delay(200);
       break;
 
     case 0xFF10EF: Serial.println(" 7");
       auswahl = 7;
-      eingabePass = eingabePass + "7";
+      inputPass = inputPass + "7";
       delay(200);
       break;
 
     case 0xFF38C7: Serial.println(" 8");
       auswahl = 8;
-      eingabePass = eingabePass + "8";
+      inputPass = inputPass + "8";
       delay(200);
       break;
 
     case 0xFF5AA5: Serial.println(" 9");
       auswahl = 9;
-      eingabePass = eingabePass + "9";
+      inputPass = inputPass + "9";
       delay(200);
       break;
 
     case 0xFF4AB5: Serial.println(" 0");
       auswahl = 10;
-      eingabePass = eingabePass + "0";
+      inputPass = inputPass + "0";
       delay(200);
       break;
 
     case 0xFF42BD: Serial.println(" *");
-      if (passwortAlarm.equals(eingabePass)) {
+      if (passwortAlarm.equals(inputPass)) {
         if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) {
-          tone(buzzerTon, 100, 800);
+          Sounde(buzzerSound, 100, 800);
           delay(810);
-          tone(buzzerTon, 1000, 800);
-          noTone(buzzerTon);
+          Sounde(buzzerSound, 1000, 800);
+          noSounde(buzzerSound);
           lcd.clear();
           lcd.setCursor(3, 0);
-          lcd.println("Alarmanlage              ");
+          lcd.println("Alarmsystem              ");
           lcd.setCursor(0, 1);
           lcd.println("Status:                  ");
           lcd.setCursor(11, 1);
-          lcd.println("AKTIV                    ");
-          eingabePass = "";
+          lcd.println("ACTIV                    ");
+          inputPass = "";
           digitalWrite(relais2, LOW);
           delay(5000);
           digitalWrite(relais2, HIGH);
           digitalWrite(alarmStatus, HIGH);
-          AlarmAN();
+          AlarmON();
 
 
         } else if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt == 1) {
-          tone(buzzerTon, 100, 800);
+          Sounde(buzzerSound, 100, 800);
           delay(810);
-          tone(buzzerTon, 1000, 800);
-          noTone(buzzerTon);
+          Sounde(buzzerSound, 1000, 800);
+          noSounde(buzzerSound);
           lcd.clear();
           lcd.setCursor(3, 0);
-          lcd.println("Alarmanlage               ");
+          lcd.println("Alarmsystem               ");
           lcd.setCursor(0, 1);
           lcd.println("Status:                   ");
           lcd.setCursor(9, 1);
-          lcd.println("INAKTIV                   ");
-          eingabePass = "";
+          lcd.println("INACTIV                   ");
+          inputPass = "";
           digitalWrite(relais3, LOW);
           delay(5000);
           digitalWrite(relais3, HIGH);
           digitalWrite(alarmStatus, LOW);//alarmStatusInt = 0;
-          AlarmAUS();
+          AlarmOFF();
         }
         delay(200);
       }
       else {
-        tone(buzzerTon, 100, 800);
+        Sounde(buzzerSound, 100, 800);
         delay(810);
-        tone(buzzerTon, 300, 800);
-        noTone(buzzerTon);
-        eingabePass = "";
+        Sounde(buzzerSound, 300, 800);
+        noSounde(buzzerSound);
+        inputPass = "";
         lcd.clear();
         lcd.setCursor(4, 0);
         lcd.println("Passwort:       ");
         lcd.setCursor(5, 1);
-        lcd.println("FALSCH!          ");
+        lcd.println("Wrong!          ");
         digitalWrite(relais2, LOW);
         digitalWrite(relais3, LOW);
         delay(3000);
@@ -448,20 +449,20 @@ void RemoteControl() {
       break;
 
     case 0xFF52AD: Serial.println(" #");
-      eingabePass = "";
+      inputPass = "";
       lcd.clear();
       lcd.setCursor(3, 0);
-      lcd.println("Alarmanlage                    ");
+      lcd.println("Alarmsystem                    ");
       lcd.setCursor(0, 1);
       lcd.println("Status:                        ");
-      if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt == 1) { //negiert
+      if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt == 1) { 
         lcd.setCursor(11, 1);
-        lcd.println("AKTIV           ");
-      } else if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { //negiert
+        lcd.println("ACTIV           ");
+      } else if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { 
         lcd.setCursor(9, 1);
-        lcd.println("INAKTIV         ");
+        lcd.println("INACTIV         ");
       }
-      noTone(buzzerTon);
+      noSounde(buzzerSound);
       delay(200);
       break;
 
@@ -472,7 +473,7 @@ void RemoteControl() {
   if (results.value == 0xFF629D || results.value == 0xFF22DD || results.value == 0xFF02FD || results.value == 0xFFC23D || results.value == 0xFFA857 || results.value == 0xFF6897 || results.value == 0xFF9867 || results.value == 0xFFB04F ||
       results.value == 0xFF30CF || results.value == 0xFF18E7 || results.value == 0xFF7A85 || results.value == 0xFF10EF || results.value == 0xFF38C7 || results.value == 0xFF5AA5 || results.value == 0xFF42BD || results.value == 0xFF4AB5 ||
       results.value == 0xFF52AD) {
-    laengeEingabe = eingabePass.length();
+    laengeEingabe = inputPass.length();
     anz++;
     if (laengeEingabe > 0) {
       if (laengeEingabe == 1) {
@@ -545,10 +546,10 @@ void RemoteControl() {
     }
   }
   if (anz > 10) {
-    eingabePass = "";
+    inputPass = "";
   }
 
-  noTone(buzzerTon);
+  noSounde(buzzerSound);
 
 }
 //----------------------
@@ -597,54 +598,54 @@ void RFID() {
 
   long code = 0, saveCode = 0, secondCode = 0;
 
-  //Abfrage der RFID-Werte
+  //query of RFID-Values
   for (byte i = 0; i < mfrc522.uid.size; i++) {
     code = ((code + mfrc522.uid.uidByte[i]) * 10);
     saveCode = ((code + mfrc522.uid.uidByte[i]) * 10);
   }
-  //Ereignis bei Karte 1
+  //Event at card 1
   if (code == card_1) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.println("Identifizierung:      ");
+    lcd.println("identification:      ");
     lcd.setCursor(5, 1);
-    lcd.println("Name                 ");
+    lcd.println("NAME                 ");
     delay(2000);
     changeAlarm();
     
-    //Ereignis bei Karte 2
+    //Event at card 2
   } else if (code == card_2) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.println("Identifizierung:      ");
+    lcd.println("identification:      ");
     lcd.setCursor(3, 1);
-    lcd.println("Name                 ");
+    lcd.println("NAME                 ");
     delay(2000);
     changeAlarm();
 
-    //Ereignis bei Schlüssel 1
+    //Event at key 1
   } else if (code == key_1) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.println("Identifizierung:      ");
+    lcd.println("identification:      ");
     lcd.setCursor(3, 1);
-    lcd.println("Name             ");
+    lcd.println("NAME             ");
     delay(2000);
     changeAlarm();
 
-    //Ereignis bei Schlüssel 2
+    //Event at key 2
   } else if (code == key_2) {
     lcd.clear();
     lcd.setCursor(0, 0);
-    lcd.println("Identifizierung:      ");
+    lcd.println("identification:      ");
     lcd.setCursor(3, 1);
-    lcd.println("Name                 ");
+    lcd.println("NAME                 ");
     delay(2000);
     changeAlarm();
 
   } else {
     delay(2000);
-    Serial.println("keine Übereinstiummung");
+    Serial.println("no agreement");
     startScreen();
   }
   delay(2000);
@@ -653,23 +654,23 @@ void RFID() {
     secondCode = ((secondCode + mfrc522.uid.uidByte[t]) * 10);
   }
 
-  if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 1) { //Aktiv
+  if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 1) { //ACTIV
     lcd.clear();
     lcd.setCursor(1, 0);
-    lcd.println("Alarmanlage ist     ");
+    lcd.println("Alarmsystem is     ");
     lcd.setCursor(3, 1);
-    lcd.println("nun Inaktiv          ");
+    lcd.println("now INACTIV          ");
     digitalWrite(alarmStatus, LOW);
     delay(3000);
     startScreen();
 
   }
-  if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { //Inaktiv
+  if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { //InACTIV
     lcd.clear();
     lcd.setCursor(1, 0);
-    lcd.println("Alarmanlage ist      ");
+    lcd.println("Alarmsystem is      ");
     lcd.setCursor(4, 1);
-    lcd.println("nun Aktiv       ");
+    lcd.println("now ACTIV       ");
     digitalWrite(alarmStatus, HIGH);
     delay(3000);
     startScreen();
@@ -680,23 +681,23 @@ void RFID() {
   if (code != 0 && secondCode != 0) {
     if (code == secondCode) {
       if (secondCode == card_1 || secondCode == key_1 && secondCode == saveCode) {
-        if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 1) { //Aktiv
+        if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 1) { //ACTIV
           lcd.clear();
           lcd.setCursor(1, 0);
-          lcd.println("Alarmanlage ist     ");
+          lcd.println("Alarmsystem is     ");
           lcd.setCursor(3, 1);
-          lcd.println("nun Inaktiv          ");
+          lcd.println("now INACTIV          ");
           digitalWrite(alarmStatus, LOW);
           delay(3000);
           startScreen();
 
         }
-        if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { //Inaktiv
+        if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt == 0) { //InACTIV
           lcd.clear();
           lcd.setCursor(1, 0);
-          lcd.println("Alarmanlage ist      ");
+          lcd.println("Alarmsystem is      ");
           lcd.setCursor(4, 1);
-          lcd.println("nun Aktiv       ");
+          lcd.println("now ACTIV       ");
           digitalWrite(alarmStatus, HIGH);
           delay(3000);
           startScreen();
@@ -723,19 +724,19 @@ void changeAlarm() {
   if (digitalRead(alarmStatus == LOW)) { //alarmStatusInt = 0) {
     lcd.clear();
     lcd.setCursor(3, 0);
-    lcd.println("Alarmanlage          ");
+    lcd.println("Alarmsystem          ");
     lcd.setCursor(3, 1);
-    lcd.println("AKTIVIEREN?        ");
-    //AlarmAN();
+    lcd.println("ACTIVATE?        ");
+    //AlarmON();
     delay(2000);
   }
   if (digitalRead(alarmStatus == HIGH)) { //alarmStatusInt = 1) {
     lcd.clear();
     lcd.setCursor(3, 0);
-    lcd.println("Alarmanlage          ");
+    lcd.println("Alarmsystem          ");
     lcd.setCursor(2, 1);
-    lcd.println("DEAKTIVIEREN?        ");
-    //AlarmAUS();
+    lcd.println("DEACTIVATE?        ");
+    //AlarmOFF();
     delay(2000);
   }
 }
