@@ -28,5 +28,6 @@ https://github.com/subIT1/alarmsystem/blob/master/alarmsystem.png
 
 - line 34 to 39 - set up your display and in line 75 change the display pixel 
 - line 62 to 65 - set up your RFID-Codes
+- line 68 set up your passwort of the alarm system
 - line 104 in the loop block - add your functionallity you want to use by removing //
 - if you are using other pins at the bord you have to change them between line 10 and 60
