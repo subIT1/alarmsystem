@@ -22,6 +22,6 @@ This alarm system is created for the Arduino plattform to build your own alarm s
 
 This is only an example how you could install a alarmsystem. 
 
-![example alarmsystem] (https://raw.githubusercontent.com/subIT1/alarmsystem/blob/master/alarmsystem.png)
+![example alarmsystem] (relative/alarmsystem/blob/master/alarmsystem.png)
 
 # Todos
