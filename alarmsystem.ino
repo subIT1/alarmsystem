@@ -59,10 +59,10 @@ decode_results results;
 #define SS_PIN 53
 #define RST_PIN 8
 MFRC522 mfrc522(SS_PIN, RST_PIN);
-long card_1 = 1730230;
-long card_2 = 398090;
-long key_1 = 2053440;
-long key_2 = 76160;
+long card_1 = KEY_Value; //should be added
+long card_2 = KEY_Value; //should be added
+long key_1 = KEY_Value; //should be added
+long key_2 = KEY_Value; //should be added
 
 
 //----------------------
