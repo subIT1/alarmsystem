@@ -1,6 +1,6 @@
 # AlarmSystem by subIT1
 
-This alarm system is created for the Arduino plattform to build your own alarm system with a lot of different kind of sensors an unlock options.
+This alarm system is created for the Arduino plattform to build your own alarm system with a lot of different kind of sensors and unlock options to make your Home safe and keep you alarmed.
 
 # Supported Sensors
 
